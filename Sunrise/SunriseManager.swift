@@ -19,31 +19,24 @@ struct Sunrise: Codable {
     let solarNoon: String
 }
 
-struct SunriseManager {
+class SunriseManager {
     
     // We write this line so we can type delegate.didFetch/delegate.didFail in our functions
     
-    func searchForSunrise() async {
+    func searchForSunrise() async throws -> SunriseResponse {
         
         // we make this guard let because we need a url to pass to our URLSession.shared.DataTask
-        guard let SunriseURL = URL(string: "https://api.sunrise-sunset.org/json?lat=40.2969&lng=111.6946&date=today") else { return }
+        guard let SunriseURL = URL(string: "https://api.sunrise-sunset.org/json?lat=40.2969&lng=111.6946&date=today") else { throw SunriseError.invalidURL }
         
-        do {
-            let (data, _) = try await URLSession.shared.data(from: SunriseURL)
-            let decoder = JSONDecoder()
-            decoder.keyDecodingStrategy = .convertFromSnakeCase
-            let sunrise = try decoder.decode(Sunrise.self, from: data)
-            self.sunrise = sunrise
+        let (data, _) = try await URLSession.shared.data(from: SunriseURL)
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let sunrise = try decoder.decode(SunriseResponse.self, from: data)
+        return sunrise
             
-            
-        } catch {
-            print(error)
-        }
-        
-        
-        
-        
-        
-        
     }
+}
+
+enum SunriseError: Error {
+    case invalidURL
 }
